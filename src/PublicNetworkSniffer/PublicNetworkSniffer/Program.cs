@@ -15,6 +15,7 @@ namespace PublicNetworkSniffer
     {
         private static IList<LivePacketDevice> _allDevices;
         private static PacketDevice _selectedDevice;
+        private static DateTime _lastTimestamp;
 
         static void Main(string[] args)
         {
@@ -121,7 +122,8 @@ namespace PublicNetworkSniffer
 
         private static void PacketHandler(Packet packet)
         {
-            Console.WriteLine(packet.Timestamp.ToString("yyyy-MM-dd hh:mm:ss.fff") + " length:" + packet.Length + " Src:" + packet.IpV4.Source + " Dst:" + packet.IpV4.Destination, Color.Green);
+
         }
+
     }
 }
