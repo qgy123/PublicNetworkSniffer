@@ -19,7 +19,7 @@ namespace PublicNetworkSniffer
         /// <param name="packet"></param>
         public virtual void Process(Packet packet)
         {
-            Console.WriteLine(packet.Timestamp.ToString("yyyy-MM-dd hh:mm:ss.fff") + " length:" + packet.Length + " Src:" + packet.IpV4.Source + " Dst:" + packet.IpV4.Destination, Color.Green);
+            Console.WriteLine(packet.Timestamp.ToString("yyyy-MM-dd hh:mm:ss.fff") + " length:" + packet.Length + " Src:" + packet.IpV4.Source + " -> Dst:" + packet.IpV4.Destination, Color.Green);
         }
 
         public virtual string GetProcessorInfo() => "Default processor";
