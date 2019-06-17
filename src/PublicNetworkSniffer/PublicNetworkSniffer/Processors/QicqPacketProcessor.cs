@@ -4,8 +4,6 @@ namespace PublicNetworkSniffer.Processors
 {
     public class QicqPacketProcessor : PacketProcessor
     {
-        public override bool IsTransmissionDataOnly() => true;
-
         public override bool IsTargetProtocol(Packet packet)
         {
             return base.IsTargetProtocol(packet);

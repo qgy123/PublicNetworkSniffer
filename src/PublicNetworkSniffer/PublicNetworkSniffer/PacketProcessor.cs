@@ -7,16 +7,11 @@ namespace PublicNetworkSniffer
     public class PacketProcessor : IPacketProcessor
     {
         /// <summary>
-        /// Set Only process transmission data
-        /// </summary>
-        public virtual bool IsTransmissionDataOnly() => false;
-
-        /// <summary>
         /// Is current packet match the protocol
         /// </summary>
         /// <param name="packet"></param>
         /// <returns></returns>
-        public virtual bool IsTargetProtocol(Packet packet) => false;
+        public virtual bool IsTargetProtocol(Packet packet) => true;
 
         /// <summary>
         /// If protocol match, process will be invoke

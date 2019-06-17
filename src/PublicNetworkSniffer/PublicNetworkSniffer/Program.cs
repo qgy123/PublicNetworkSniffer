@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using PcapDotNet.Packets;
@@ -15,19 +16,19 @@ namespace PublicNetworkSniffer
     {
         private static IList<LivePacketDevice> _allDevices;
         private static PacketDevice _selectedDevice;
-        private static DateTime _lastTimestamp;
-
+        //private static DateTime _lastTimestamp;
+        private static List<PacketProcessor> _processors = new List<PacketProcessor>();
         static void Main(string[] args)
         {
             ShowInfo();
+
+            LoadProcessors();
 
             ShowDeviceList();
 
             AskForInterfaceSelection();
 
             StartSniffing();
-
-            Console.ReadLine();
         }
 
         static void ShowInfo()
@@ -35,10 +36,38 @@ namespace PublicNetworkSniffer
             Console.WriteAscii("Network Sniffer", Color.Green);
             Console.WriteLine();
             Console.WriteWithGradient("Please Select Your NetWork Interface", Color.Red, Color.Magenta, 12);
-            Console.WriteLine();
-            Console.WriteLine();
             Console.ReplaceAllColorsWithDefaults();
+            Console.WriteLine();
+            Console.WriteLine();
+        }
 
+        static void LoadProcessors()
+        {
+            var a = Assembly.GetExecutingAssembly().GetTypes();
+            int sum = 0;
+
+            foreach (var type in a)
+            {
+                try
+                {
+                    if (type.Namespace == MethodBase.GetCurrentMethod().DeclaringType.Namespace + ".Processors")
+                    {
+                        if (type.FullName != null)
+                        {
+                            var t = Type.GetType(type.FullName);
+                            var p = Activator.CreateInstance(t);
+                            _processors?.Add(p as PacketProcessor);
+                            sum++;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Fail to load processor:" + type.FullName, Color.Red);
+                }
+            }
+
+            Console.WriteLine($"{sum} Protocol Processors Loaded!", Color.Gold);
         }
 
         static void ShowDeviceList()
@@ -80,8 +109,8 @@ namespace PublicNetworkSniffer
 
             }
 
-            table.Write();
-            table2.Write();
+            Console.WriteLine(table.ToString(), Color.White);
+            Console.WriteLine(table2.ToString(), Color.White);
 
             Console.WriteLine();
         }
@@ -89,6 +118,7 @@ namespace PublicNetworkSniffer
         static void AskForInterfaceSelection()
         {
             Console.WriteLine("Your Selection  (1-" + _allDevices.Count + "):", Color.DeepSkyBlue);
+            Console.ForegroundColor = Color.White;
 
             int deviceIndex = 0;
 
@@ -122,7 +152,16 @@ namespace PublicNetworkSniffer
 
         private static void PacketHandler(Packet packet)
         {
+            if (!packet.IsValid) return;
 
+            foreach (var processor in _processors)
+            {
+                var flag = processor.IsTargetProtocol(packet);
+                if (!flag) continue;
+
+                Console.Write(processor.GetType().Name + ": ");
+                processor.Process(packet);
+            }
         }
 
     }
