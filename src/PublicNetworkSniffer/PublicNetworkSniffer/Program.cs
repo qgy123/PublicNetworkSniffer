@@ -33,7 +33,7 @@ namespace PublicNetworkSniffer
 
         static void ShowInfo()
         {
-            Console.WriteAscii("Network Sniffer", Color.Green);
+            Console.WriteAscii("Network Sniffer", Color.Gold);
             Console.WriteLine();
             Console.WriteWithGradient("Please Select Your NetWork Interface", Color.Red, Color.Magenta, 12);
             Console.ReplaceAllColorsWithDefaults();
@@ -52,13 +52,14 @@ namespace PublicNetworkSniffer
                 {
                     if (type.Namespace == MethodBase.GetCurrentMethod().DeclaringType.Namespace + ".Processors")
                     {
-                        if (type.FullName != null)
+                        if (type.FullName == null) continue;
+                        var t = Type.GetType(type.FullName);
+                        var p = Activator.CreateInstance(t);
+                        if (p is PacketProcessor pp)
                         {
-                            var t = Type.GetType(type.FullName);
-                            var p = Activator.CreateInstance(t);
-                            _processors?.Add(p as PacketProcessor);
-                            sum++;
+                            _processors.Add(pp);
                         }
+                        sum++;
                     }
                 }
                 catch (Exception)
