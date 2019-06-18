@@ -145,6 +145,10 @@ namespace PublicNetworkSniffer
             using (PacketCommunicator communicator = _selectedDevice.Open(65536, PacketDeviceOpenAttributes.Promiscuous, 1000))
             {
                 Console.WriteLine("Listening on " + _selectedDevice.Description + "...", Color.Coral);
+                //using (BerkeleyPacketFilter filter = communicator.CreateFilter("udp"))
+                //{
+                //    communicator.SetFilter(filter);
+                //}
                 communicator.ReceivePackets(0, PacketHandler);
             }
 
@@ -156,11 +160,16 @@ namespace PublicNetworkSniffer
 
             foreach (var processor in _processors)
             {
-                var flag = processor.IsTargetProtocol(packet);
-                if (!flag) continue;
-
-                Console.Write(processor.GetType().Name + ": ");
-                processor.Process(packet);
+                try
+                {
+                    var flag = processor.IsTargetProtocol(packet);
+                    if (!flag) continue;
+                    processor.Process(packet);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine(processor.GetType().Name + ": Occured a problem!", Color.Red);
+                }
             }
         }
 

@@ -1,6 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text;
+using PcapDotNet.Base;
 using PcapDotNet.Packets;
+using PcapDotNet.Packets.IpV4;
 using Syroot.BinaryData;
 
 namespace PublicNetworkSniffer.Processors
@@ -9,23 +13,49 @@ namespace PublicNetworkSniffer.Processors
     {
         public override bool IsTargetProtocol(Packet packet)
         {
-            var data = packet.IpV4.Payload.ToMemoryStream();
-            BinaryReader reader = new BinaryReader(data);
-            byte start = reader.ReadByte();
-            byte end = 0;
-            while (!data.IsEndOfStream()) { end = reader.ReadByte(); }
+            bool? flag = packet.Ethernet?.IpV4?.Protocol == IpV4Protocol.Udp;
+            if ((bool)!flag) return false;
 
-            return start == (byte)0x02 && end == (byte)0x03;
+            var data = packet.Ethernet?.IpV4?.Udp?.Payload?.ToArray();
+            if (data == null) return false;
+
+            //length
+            if (!(data.Length >= 28)) return false;
+
+            byte start = data.ReadByte(0);
+            byte end = data.ReadByte(data.Length - 1);
+
+            //if (end == 0x03)
+            //{
+            //    string hex = BitConverter.ToString(data).Replace("-", string.Empty);
+            //    Console.WriteLine(hex);
+            //}
+
+            return start == 0x02 && end == 0x03;
+
         }
 
         public override void Process(Packet packet)
         {
-            base.Process(packet);
+            var data = packet.Ethernet?.IpV4?.Udp?.Payload?.ToMemoryStream();
+            if (data == null) return;
+            BinaryReader reader = new BinaryReader(data, Encoding.ASCII, false);
+            reader.ReadByte();
+            var build = reader.ReadInt16().ReverseEndianity();
+            var cmd = reader.ReadInt16().ReverseEndianity();
+            if (cmd == 0) return;
+            var seq = reader.ReadInt16().ReverseEndianity();
+            var accountBytes = reader.ReadBytes(4).Reverse();
+            long account = BitConverter.ToInt32(accountBytes.ToArray(), 0);
+            if (account == 0) return;
+
+            Console.WriteLine(
+                $"{GetType().Name}: PCQQ Client Discovered: Client Version:{build} Cmd:{cmd} PacketSeq:{seq} QQ: {account}");
         }
 
         public override string GetProcessorInfo()
         {
-            return base.GetProcessorInfo();
+            return "Processor To Capture the QQ packet for Analysis";
         }
     }
 }
