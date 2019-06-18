@@ -84,6 +84,8 @@
   <ItemGroup>
     <Compile Include="IPacketProcessor.cs" />
     <Compile Include="PacketProcessor.cs" />
+    <Compile Include="Processors\HttpPacketProcessor.cs" />
+    <Compile Include="Processors\MQicqPacketProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProtocolStatistic.cs" />
